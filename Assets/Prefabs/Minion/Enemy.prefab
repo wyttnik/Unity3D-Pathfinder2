@@ -609,18 +609,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89fb4cd99860c1e4b8a0e0ab6208fb25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 3
   obstacleRange: 5
   steps: 0
+  walking: 0
   force: 5
   max_angle: 20
   leftLeg: {fileID: 2452039304300008083}
   rightLeg: {fileID: 2452039304042605446}
   leftLegJoint: {fileID: 2452039302222433915}
   rightLegJoint: {fileID: 2452039302875939194}
-  enemyHead: {fileID: 0}
-  headMaterial: {fileID: 0}
-  headMaterial2: {fileID: 0}
 --- !u!1 &6880233927878241458
 GameObject:
   m_ObjectHideFlags: 0

@@ -2,88 +2,72 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PathNode //: MonoBehaviour
+
+namespace BaseAI
 {
-    public bool walkable;           //  Свободна для перемещения
-    public Vector3 worldPosition;   //  Позиция в глобальных координатах
-    private GameObject objPrefab;   //  Шаблон объекта
-    public GameObject body;         //  Объект для отрисовки
-    
-    private PathNode parentNode = null;               //  откуда пришли
-    
-    /// <summary>
-    /// Родительская вершина - предшествующая текущей в пути от начальной к целевой
-    /// </summary>
-    public PathNode ParentNode
-    {
-        get => parentNode;
-        set => SetParent(value);
-    }
-
-    private float distance = float.PositiveInfinity;  //  расстояние от начальной вершины
 
     /// <summary>
-    /// Расстояние от начальной вершины до текущей (+infinity если ещё не развёртывали)
+    /// Точка пути - изменяем по сравенению с предыдущим проектом
     /// </summary>
-    public float Distance
+    public class PathNode//: MonoBehaviour
     {
-        get => distance;
-        set => distance = value;
-    }
+        public Vector3 Position { get; }         //  Позиция в глобальных координатах
+        public Vector3 Direction { get; }        //  Направление
+        public float TimeMoment { get; }         //  Момент времени        
+        /// <summary>
+        /// Родительская вершина - предшествующая текущей в пути от начальной к целевой
+        /// </summary>
+        private PathNode Parent { get; } = null;       //  Родительский узел
 
-    /// <summary>
-    /// Устанавливаем родителя и обновляем расстояние от него до текущей вершины. Неоптимально - дважды расстояние считается
-    /// </summary>
-    /// <param name="parent"></param>
-    private void SetParent(PathNode parent)
-    {
-        //  Указываем родителя
-        parentNode = parent;
-        //  Вычисляем расстояние
-        if (parent != null)
-            distance = parent.Distance + Vector3.Distance(body.transform.position, parent.body.transform.position);
-        else
-            distance = float.PositiveInfinity;
-    }
+        public float G { get; }  //  Пройденный путь от цели
+        public float H { get; }  //  Пройденный путь от цели
 
-    /// <summary>
-    /// Конструктор вершины
-    /// </summary>
-    /// <param name="_objPrefab">объект, который визуализируется в вершине</param>
-    /// <param name="_walkable">проходима ли вершина</param>
-    /// <param name="position">мировые координаты</param>
-    public PathNode(GameObject _objPrefab, bool _walkable, Vector3 position)
-    {
-        objPrefab = _objPrefab;
-        walkable = _walkable;
-        worldPosition = position;
-        body = GameObject.Instantiate(objPrefab, worldPosition, Quaternion.identity);
-    }
+        /// <summary>
+        /// Конструирование вершины на основе родительской (если она указана)
+        /// </summary>
+        /// <param name="ParentNode">Если существует родительская вершина, то её указываем</param>
+        public PathNode(PathNode ParentNode = null)
+        {
+            Parent = ParentNode;
+        }
 
-    /// <summary>
-    /// Расстояние между вершинами - разброс по высоте учитывается дополнительно
-    /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <returns></returns>
-    public static float Dist(PathNode a, PathNode b)
-    {
-        return Vector3.Distance(a.body.transform.position, b.body.transform.position) + 40 * Mathf.Abs(a.body.transform.position.y - b.body.transform.position.y);
-    }
-    
-    /// <summary>
-    /// Подсветить вершину - перекрасить в красный
-    /// </summary>
-    public void Illuminate()
-    {
-        body.GetComponent<Renderer>().material.color = Color.red;
-    }
-    
-    /// <summary>
-    /// Снять подсветку с вершины - перекрасить в синий
-    /// </summary>
-    public void Fade()
-    {
-        body.GetComponent<Renderer>().material.color = Color.blue;
+        /// <summary>
+        /// Конструирование вершины на основе родительской (если она указана)
+        /// </summary>
+        /// <param name="ParentNode">Если существует родительская вершина, то её указываем</param>
+        public PathNode(Vector3 currentPosition)
+        {
+            Position = currentPosition;      //  Позицию задаём
+            Direction = Vector3.zero;        //  Направление отсутствует
+            TimeMoment = -1.0f;              //  Время отрицательное
+            Parent = null;                   //  Родителя нет
+            G = 0;
+            H = 0;
+        }
+
+        /// <summary>
+        /// Расстояние между точками без учёта времени. Со временем - отдельная история
+        /// Если мы рассматриваем расстояние до целевой вершины, то непонятно как учитывать время
+        /// </summary>
+        /// <param name="other">Точка, до которой высчитываем расстояние</param>
+        /// <returns></returns>
+        public float Distance(PathNode other)
+        {
+            return Vector3.Distance(Position, other.Position);
+        }
+
+        /// <summary>
+        /// Расстояние между точками без учёта времени. Со временем - отдельная история
+        /// Если мы рассматриваем расстояние до целевой вершины, то непонятно как учитывать время
+        /// </summary>
+        /// <param name="other">Точка, до которой высчитываем расстояние</param>
+        /// <returns></returns>
+        public float Distance(Vector3 other)
+        {
+            return Vector3.Distance(Position, other);
+        }
+
+
+
     }
 }

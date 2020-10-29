@@ -4,14 +4,33 @@ using UnityEngine;
 
 public class BotMovement : MonoBehaviour
 {
-    public float speed = 3.0f;
+    /// <summary>
+    /// Запланированный путь как список точек маршрута
+    /// </summary>
+    [SerializeField] public List<BaseAI.PathNode> plannedPath;
+    
+    /// <summary>
+    /// Текущий путь как список точек маршрута
+    /// </summary>
+    [SerializeField] List<BaseAI.PathNode> currentPath = null;
+
+    /// <summary>
+    /// Текущая целевая точка, к которой идёт бот
+    /// </summary>
+    private BaseAI.PathNode currentTarget = null;
+    
+    /// <summary>
+    /// Параметры движения бота
+    /// </summary>
+    [SerializeField] private BaseAI.MovementProperties movementProperties;
+
     public float obstacleRange = 5.0f;
     public int steps = 0;
     private float leftLegAngle = 3f;
     [SerializeField] private bool walking = false;
 
 
-    //  Сила, тянущая "вверх" упавшего врага и заставляющая его вставать
+    //  Сила, тянущая "вверх" упавшего бота и заставляющая его вставать
     [SerializeField] float force = 5.0f;
     //  Угол отклонения, при котором начинает действовать "поднимающая" сила
     [SerializeField] float max_angle = 20.0f;
@@ -42,30 +61,113 @@ public class BotMovement : MonoBehaviour
         leftLeg.transform.RotateAround(leftLegJoint.transform.position, transform.right, leftLegAngle);
         rightLeg.transform.RotateAround(rightLegJoint.transform.position, transform.right, -leftLegAngle);
     }
+    /// <summary>
+    /// Обновление текущей целевой точки - куда вообще двигаться
+    /// </summary>
+    private bool UpdateCurrentTargetPoint()
+    {
 
-    // Update is called once per frame
+        //  Если есть текущая целевая точка
+        if(currentTarget != null)
+        {
+            float distanceToTarget = currentTarget.Distance(transform.position);
+            //  Если до текущей целевой точки ещё далеко, то выходим
+            if (distanceToTarget >= movementProperties.epsilon) return true;
+            //  Иначе удаляем её из маршрута и берём следующую
+            currentPath.RemoveAt(0);
+            if (currentPath.Count > 0) 
+            {
+                //  Берём очередную точку и на выход
+                currentTarget = currentPath[0];
+                return true;
+            }
+            else
+            {
+                currentTarget = null;
+                currentPath = null;
+                //  А вот тут надо будет проверять, есть ли уже построенный маршрут
+            }
+        }
+        else 
+        if(currentPath != null)
+        {
+            if(currentPath.Count > 0 )
+            {
+                currentTarget = currentPath[0];
+                return true;
+            }
+            else
+            {
+                currentPath = null;
+            }
+        }
+
+        //  Здесь мы только в том случае, если целевой нет, и текущего пути нет - и то, и другое null
+        //  Обращение к plannedPath желательно сделать через блокировку - именно этот список задаётся извне планировщиком
+        //  Непонятно, насколько lock затратен, можно ещё булевский флажок добавить, его сначала проверять
+        //lock(plannedPath)
+        {
+            if(plannedPath != null)
+            {
+                currentPath = plannedPath;
+                plannedPath = null;
+                if (currentPath.Count > 0)
+                    currentTarget = currentPath[0];
+            }
+        }
+        return currentTarget != null;
+    }
+
+    /// <summary>
+    /// Очередной шаг бота - движение
+    /// </summary>
+    /// <returns></returns>
+    bool MoveBot()
+    {
+        //  Выполняем обновление текущей целевой точки
+        if (!UpdateCurrentTargetPoint())
+        {
+            //  Это ситуация когда идти некуда - цели нет
+            return false;
+        }
+
+        //  Ну у нас тут точно есть целевая точка, вот в неё и пойдём
+        //  Определяем угол поворота, и расстояние до целевой
+        Vector3 directionToTarget = currentTarget.Position - transform.position;
+        float angle = Vector3.SignedAngle(transform.forward, directionToTarget, Vector3.up);
+        //  Теперь угол надо привести к допустимому диапазону
+        angle = Mathf.Clamp(angle, -movementProperties.rotationAngle, movementProperties.rotationAngle);
+
+        //  Зная угол, нужно получить направление движения (мы можем сразу не повернуть в сторону цели)
+        //  Выполняем вращение вокруг оси Oy
+
+        //  Угол определили, теперь, собственно, определяем расстояние для шага
+        float stepLength = directionToTarget.magnitude;
+        float actualStep = Mathf.Clamp(stepLength, 0.0f, movementProperties.maxSpeed * Time.deltaTime);
+        //  Поворот может быть проблемой, если слишком близко подошли к целевой точке
+        //  Надо как-то следить за скоростью, она не может превышать расстояние до целевой точки???
+        transform.Rotate(Vector3.up, angle);
+        transform.position = transform.position + actualStep * transform.forward;
+        return true;
+    }
+
+
+    /// <summary>
+    /// Вызывается каждый кадр
+    /// </summary>
     void Update()
     {
         //  Фрагмент кода, отвечающий за вставание
         var vertical_angle = Vector3.Angle(Vector3.up, transform.up);
         if (vertical_angle > max_angle)
         {
-            GetComponent<Rigidbody>().AddForceAtPosition(force * Vector3.up, transform.position + 3.0f * transform.up, ForceMode.Force);
+            GetComponent<Rigidbody>().AddForceAtPosition(5 * force * Vector3.up, transform.position + 3.0f * transform.up, ForceMode.Force);
         };
 
         if (!walking) return;
 
-        Ray ray = new Ray(transform.position, transform.forward);
-        RaycastHit hit;
-        if (Physics.SphereCast(ray, 0.75f, out hit))
-            if (hit.distance < obstacleRange)
-            {
-                float angle = Random.Range(-110, 110);
-                transform.Rotate(0, angle, 0);
-                return;
-            }
-
-        transform.Translate(0, 0, speed * Time.deltaTime);
+        //  Собственно движение
+        MoveBot();
         MoveLegs();
     }
 }

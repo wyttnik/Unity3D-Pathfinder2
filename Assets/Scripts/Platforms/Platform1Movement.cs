@@ -17,10 +17,9 @@ public class Platform1Movement : MonoBehaviour
 
     void Update()
     {
-        //  Если нет компонента Rigidbody - то и движение не реализуется
         if (!moving) return;
 
-        transform.RotateAround(rotationCenter, Vector3.up, rotationSpeed);
+        transform.RotateAround(rotationCenter, Vector3.up, Time.deltaTime*rotationSpeed);
 
     }
 }
