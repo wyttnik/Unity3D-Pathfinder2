@@ -20,7 +20,7 @@ namespace BaseAI
         /// <summary>
         /// Количество дискретных углов поворота
         /// </summary>
-        public float angleSteps;
+        public int angleSteps;  
         /// <summary>
         /// Длина прыжка (фиксированная)
         /// </summary>

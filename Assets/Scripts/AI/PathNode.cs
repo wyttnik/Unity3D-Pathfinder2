@@ -6,6 +6,15 @@ using UnityEngine;
 namespace BaseAI
 {
 
+    /*        x  y  z    angle    time
+  current     9  3  1    (0,0,1)   0.5
+              9  3  1.2   (0,0,1)   0.5
+              9.1  3  1.1    (0,0.1,1)   0.5
+              8.9  3  0.1    (0,-0.1,1)   0.5
+              
+              9  3  1    (0,0,1)   0.7
+
+    */
     /// <summary>
     /// Точка пути - изменяем по сравенению с предыдущим проектом
     /// </summary>
@@ -13,7 +22,7 @@ namespace BaseAI
     {
         public Vector3 Position { get; }         //  Позиция в глобальных координатах
         public Vector3 Direction { get; }        //  Направление
-        public float TimeMoment { get; }         //  Момент времени        
+        public float TimeMoment { get; set; }         //  Момент времени        
         /// <summary>
         /// Родительская вершина - предшествующая текущей в пути от начальной к целевой
         /// </summary>

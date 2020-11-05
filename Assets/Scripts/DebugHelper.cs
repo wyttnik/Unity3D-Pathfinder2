@@ -24,8 +24,13 @@ public class DebugHelper : MonoBehaviour
         lock (movementSript) {
             //  Для каждой точки списка формируем объект класса PathNode
             movementSript.plannedPath = new List<BaseAI.PathNode>();
-            foreach (var point in wayPoints)
-                movementSript.plannedPath.Add(new BaseAI.PathNode(point.transform.position));
+            //foreach (var point in wayPoints)
+              //  movementSript.plannedPath.Add(new BaseAI.PathNode(point.transform.position));
+            for (int i = 0; i < wayPoints.Count; ++i) 
+            {
+                movementSript.plannedPath.Add(new BaseAI.PathNode(wayPoints[i].transform.position));
+                movementSript.plannedPath[movementSript.plannedPath.Count - 1].TimeMoment = 5.3f * i;
+            }
         }
 
     }

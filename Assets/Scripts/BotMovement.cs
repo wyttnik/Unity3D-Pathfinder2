@@ -72,8 +72,9 @@ public class BotMovement : MonoBehaviour
         {
             float distanceToTarget = currentTarget.Distance(transform.position);
             //  Если до текущей целевой точки ещё далеко, то выходим
-            if (distanceToTarget >= movementProperties.epsilon) return true;
+            if (distanceToTarget >= movementProperties.epsilon || currentTarget.TimeMoment - Time.fixedTime > movementProperties.epsilon) return true;
             //  Иначе удаляем её из маршрута и берём следующую
+            Debug.Log("Point reached : " + Time.fixedTime.ToString());
             currentPath.RemoveAt(0);
             if (currentPath.Count > 0) 
             {
@@ -147,7 +148,20 @@ public class BotMovement : MonoBehaviour
         //  Поворот может быть проблемой, если слишком близко подошли к целевой точке
         //  Надо как-то следить за скоростью, она не может превышать расстояние до целевой точки???
         transform.Rotate(Vector3.up, angle);
-        transform.position = transform.position + actualStep * transform.forward;
+
+        //  Время прибытия - оставшееся время
+        var remainedTime = currentTarget.TimeMoment - Time.fixedTime;
+        if (remainedTime < movementProperties.epsilon)
+        {
+            transform.position = transform.position + actualStep * transform.forward;
+        }
+        else
+        {
+            //  Дедлайн ещё не скоро!!! Стоим спим
+            if (currentTarget.Distance(transform.position) < movementProperties.epsilon) return true;
+
+            transform.position = transform.position + actualStep * transform.forward / remainedTime;
+        }
         return true;
     }
 
