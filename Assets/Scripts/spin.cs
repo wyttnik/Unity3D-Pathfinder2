@@ -10,11 +10,6 @@ public class spin : MonoBehaviour
     public float maximumVert = 45.0f;
     private float _rotationX = 0;
 
-    // Инициализации нет
-    void Start()
-    {
-    }
-
     // Вызывается при отрисовке каждого кадра
     void Update()
     {

@@ -12,10 +12,7 @@ public class spin_body : MonoBehaviour
     private float _rotationY = 0;
 
     // Начальный метод пустой - инициализировать нечего
-    void Start()
-    {
-
-    }
+    // void Start()  { }
 
     // Каждый раз при обновлении считываем позицию курсора мыши, и соответственно выполняем вращение
     void Update()

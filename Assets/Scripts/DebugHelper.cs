@@ -2,35 +2,50 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Класс, созданный с одной целью - генерация отладочного списка точек для движения бота, и не более
-/// </summary>
-public class DebugHelper : MonoBehaviour
+namespace BaseAI
 {
-    /// <summary>
-    /// Ссылка на объект, отвечающий за движение бота
-    /// </summary>
-    [SerializeField] private BotMovement movementSript;
-    
-    /// <summary>
-    /// Список объектов, через которые бот будет двигаться - выставляются в Unity для отладки
-    /// </summary>
-    [SerializeField] private List<GameObject> wayPoints;
 
-    // На старте однократно определить список точек маршрута
-    void Start()
+    /// <summary>
+    /// Класс, созданный с одной целью - генерация отладочного списка точек для движения бота, и не более.
+    /// В нормальном проекте его надо будет вырезать
+    /// </summary>
+    public class DebugHelper : MonoBehaviour
     {
-        //  Блокируем объект для исключительного доступа (вообще-то в этом нет необходимости, но для порядка)
-        lock (movementSript) {
+        private List<PathNode> pathNodes;
+
+        /// <summary>
+        /// Список объектов, через которые бот будет двигаться - выставляются в Unity для отладки
+        /// </summary>
+        [SerializeField] private List<GameObject> wayPoints;
+
+
+        /// <summary>
+        /// Список объектов, через которые бот будет двигаться - выставляются в Unity для отладки
+        /// </summary>
+        [SerializeField] private List<Collider> regions;
+
+        // На старте однократно определить список точек маршрута
+        void Start()
+        {
+            Debug.Log("Debug helper created!");
+            pathNodes = new List<PathNode>();
             //  Для каждой точки списка формируем объект класса PathNode
-            movementSript.plannedPath = new List<BaseAI.PathNode>();
-            //foreach (var point in wayPoints)
-              //  movementSript.plannedPath.Add(new BaseAI.PathNode(point.transform.position));
-            for (int i = 0; i < wayPoints.Count; ++i) 
+
+            //  movementSript.plannedPath.Add(new BaseAI.PathNode(point.transform.position));
+            for (int i = 0; i < wayPoints.Count; ++i)
             {
-                movementSript.plannedPath.Add(new BaseAI.PathNode(wayPoints[i].transform.position));
-                movementSript.plannedPath[movementSript.plannedPath.Count - 1].TimeMoment = 5.3f * i;
+                pathNodes.Add(new BaseAI.PathNode(wayPoints[i].transform.position, Vector3.zero));
+                pathNodes[pathNodes.Count - 1].TimeMoment = 5.3f * i;
             }
+        }
+        
+        /// <summary>
+        /// Получить маршрут для движения
+        /// </summary>
+        /// <returns></returns>
+        public List<PathNode> GetRoute()
+        {
+            return pathNodes;
         }
 
     }

@@ -2,19 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
 namespace BaseAI
 {
-
-    /*        x  y  z    angle    time
-  current     9  3  1    (0,0,1)   0.5
-              9  3  1.2   (0,0,1)   0.5
-              9.1  3  1.1    (0,0.1,1)   0.5
-              8.9  3  0.1    (0,-0.1,1)   0.5
-              
-              9  3  1    (0,0,1)   0.7
-
-    */
     /// <summary>
     /// Точка пути - изменяем по сравенению с предыдущим проектом
     /// </summary>
@@ -44,11 +33,11 @@ namespace BaseAI
         /// Конструирование вершины на основе родительской (если она указана)
         /// </summary>
         /// <param name="ParentNode">Если существует родительская вершина, то её указываем</param>
-        public PathNode(Vector3 currentPosition)
+        public PathNode(Vector3 currentPosition, Vector3 currentDirection)
         {
             Position = currentPosition;      //  Позицию задаём
-            Direction = Vector3.zero;        //  Направление отсутствует
-            TimeMoment = -1.0f;              //  Время отрицательное
+            Direction = currentDirection;    //  Направление отсутствует
+            TimeMoment = Time.fixedTime;     //  Время текущее
             Parent = null;                   //  Родителя нет
             G = 0;
             H = 0;
