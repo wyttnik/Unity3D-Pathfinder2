@@ -43,14 +43,18 @@ namespace BaseAI
         public DebugHelper dbgHelper;
 
         /// <summary>
+        /// Объект сцены, на котором размещены коллайдеры
+        /// </summary>
+        [SerializeField] private GameObject CollidersCollection;
+
+        /// <summary>
         /// Картограф - класс, хранящий информацию о геометрии уровня, регионах и прочем
         /// </summary>
-        private Cartographer сartographer;
+        [SerializeField] private Cartographer сartographer;
         
         public PathFinder()
         {
-            //  Инициализируем картографа, ну и всё вроде бы
-            сartographer = new Cartographer();
+            
         }
 
         /// <summary>
@@ -86,10 +90,11 @@ namespace BaseAI
 
 
         //// Start is called before the first frame update
-        //void Start()
-        //{
-
-        //}
+        void Start()
+        {
+            //  Инициализируем картографа, ну и всё вроде бы
+            сartographer = new Cartographer(CollidersCollection);
+        }
 
         //// Update is called once per frame
         //void Update()

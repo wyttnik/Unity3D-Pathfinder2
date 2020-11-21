@@ -60,14 +60,9 @@ namespace BaseAI
         /// </summary>
         public SphereCollider body;
         
-        public SphereRegion(int RegionIndex, Vector3 Position, float Radius)
+        public SphereRegion(SphereCollider sample)
         {
-            body = new SphereCollider
-            {
-                center = Position,
-                radius = Radius
-            };
-            index = RegionIndex;
+            body = sample;
         }
         
         /// <summary>
@@ -111,14 +106,9 @@ namespace BaseAI
         /// <param name="RegionIndex"></param>
         /// <param name="position"></param>
         /// <param name="size"></param>
-        public BoxRegion(int RegionIndex, Vector3 Position, Vector3 Size)
+        public BoxRegion(BoxCollider sample)
         {
-            body = new BoxCollider
-            {
-                center = Position,
-                size = Size
-            };
-            index = RegionIndex;
+            body = sample;
         }
         
         /// <summary>
@@ -151,17 +141,32 @@ namespace BaseAI
     public class Cartographer
     {
         //  Список регионов
-        public List<BaseRegion> regions = new List<BaseRegion>();
+        [SerializeField] public List<BaseRegion> regions = new List<BaseRegion>();
 
         // Start is called before the first frame update
-        void Start()
+        public Cartographer(GameObject collidersCollection)
         {
             //  Создаём региончики
-            regions.Add(new BoxRegion(0, new Vector3(21f, 11f, 25f), new Vector3(40f, 2f, 49f)));
-            regions.Add(new BoxRegion(1, new Vector3(50f, 11f, 10f), new Vector3(14f, 2f, 20f)));
-            regions.Add(new BoxRegion(2, new Vector3(78f, 11f, 23f), new Vector3(42f, 2f, 46f)));
-            regions.Add(new SphereRegion(3, new Vector3(8.79f, 10f, 50f), 3.5f));
-            regions.Add(new SphereRegion(4, new Vector3(99.2f, 10f, 20.9f), 3.5f));
+            //  Они уже созданы в редакторе, как коллекция коллайдеров - повешена на объект игровой сцены CollidersMaster внутри объекта Surface
+            //  Их просто нужно вытащить списком, и запихнуть в список регионов.
+            //  Но есть проблема - не перепутать индексы регионов! Нам нужно вручную настроить списки смежности - какой регион с
+            //  каким граничит. Это можно автоматизировать, как-никак у нас коллайдеры с наложением размещены, но вообще это
+            //  не сработает для динамических регионов (коллайдеры которых перемещаются) - они автоматически не установят связи.
+            //  Поэтому открываем картинку RegionsMap.png в корне проекта, и ручками дорисовываем регионы, и связи между ними.
+
+            var colliders = collidersCollection.GetComponents<Collider>();
+            foreach (var collider in colliders)
+            {
+                if (collider.GetType() == typeof(BoxCollider)) {
+                    regions.Add(new BoxRegion((BoxCollider)collider)); continue;
+                }
+                if (collider.GetType() == typeof(SphereCollider))
+                {
+                    regions.Add(new SphereRegion((SphereCollider)collider)); continue;
+                }
+
+                throw new System.Exception("You can't add any other types of colliders except of Box and Sphere!");
+            }
 
             //  Настраиваем связи между регионами - не самая лучшая идея, но для крупных регионов сойдёт
             regions[0].Neighbors.Add(regions[1]);
@@ -178,7 +183,8 @@ namespace BaseAI
             regions[4].Neighbors.Add(regions[2]);
 
 
-            //  Платформы потом
+            //  Платформы потом. Для них реализовать класс "BaseRegion", и его подсовывать в этот список, обновляя 
+            //  списки смежности
         }
 
         /// <summary>
