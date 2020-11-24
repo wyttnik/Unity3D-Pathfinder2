@@ -141,11 +141,24 @@ namespace BaseAI
     public class Cartographer
     {
         //  Список регионов
-        [SerializeField] public List<BaseRegion> regions = new List<BaseRegion>();
+        public List<BaseRegion> regions = new List<BaseRegion>();
+
+        //  Поверхность (Terrain) сцены
+        public Terrain SceneTerrain;
 
         // Start is called before the first frame update
         public Cartographer(GameObject collidersCollection)
         {
+            //  Получить Terrain. Пробуем просто найти Terrain на сцене
+            try
+            {
+                SceneTerrain = (Terrain)Object.FindObjectOfType(typeof(Terrain));
+            }
+            catch (System.Exception e)
+            {
+                Debug.Log("Can't find Terrain!!!" + e.Message);
+            }
+
             //  Создаём региончики
             //  Они уже созданы в редакторе, как коллекция коллайдеров - повешена на объект игровой сцены CollidersMaster внутри объекта Surface
             //  Их просто нужно вытащить списком, и запихнуть в список регионов.
@@ -158,11 +171,15 @@ namespace BaseAI
             foreach (var collider in colliders)
             {
                 if (collider.GetType() == typeof(BoxCollider)) {
-                    regions.Add(new BoxRegion((BoxCollider)collider)); continue;
+                    regions.Add(new BoxRegion((BoxCollider)collider));
+                    regions[regions.Count - 1].index = regions.Count - 1;
+                    continue;
                 }
                 if (collider.GetType() == typeof(SphereCollider))
                 {
-                    regions.Add(new SphereRegion((SphereCollider)collider)); continue;
+                    regions.Add(new SphereRegion((SphereCollider)collider));
+                    regions[regions.Count - 1].index = regions.Count - 1; 
+                    continue;
                 }
 
                 throw new System.Exception("You can't add any other types of colliders except of Box and Sphere!");
@@ -192,7 +209,7 @@ namespace BaseAI
         /// </summary>
         /// <param name="node"></param>
         /// <returns>Индекс региона, -1 если не принадлежит (не проходима)</returns>
-        BaseRegion GetRegion(PathNode node)
+        public BaseRegion GetRegion(PathNode node)
         {
             for (var i = 0; i < regions.Count; ++i)
                 //  Метод полиморфный и для всяких платформ должен быть корректно в них реализован

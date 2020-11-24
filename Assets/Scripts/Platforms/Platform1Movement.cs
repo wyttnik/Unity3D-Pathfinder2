@@ -20,6 +20,5 @@ public class Platform1Movement : MonoBehaviour
         if (!moving) return;
 
         transform.RotateAround(rotationCenter, Vector3.up, Time.deltaTime*rotationSpeed);
-
     }
 }
