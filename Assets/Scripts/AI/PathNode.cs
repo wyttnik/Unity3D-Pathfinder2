@@ -11,18 +11,28 @@ namespace BaseAI
     {
         public Vector3 Position { get; set; }         //  Позиция в глобальных координатах
         public Vector3 Direction { get; set; }        //  Направление
+<<<<<<< HEAD
         public float TimeMoment { get; set; }         //  Момент времени       
         /// <summary>
         /// Нужно ли из этой вершины прыгать
         /// </summary>
         public bool JumpNode { get; set; } = false; 
+=======
+        public float TimeMoment { get; set; }         //  Момент времени        
+>>>>>>> origin/master
         /// <summary>
         /// Родительская вершина - предшествующая текущей в пути от начальной к целевой
         /// </summary>
         public PathNode Parent = null;       //  Родительский узел
+<<<<<<< HEAD
 
         public float H { get; set; }  //  Оставшийся путь до цели
 
+=======
+
+        public float H { get; set; }  //  Оставшийся путь до цели
+
+>>>>>>> origin/master
         /// <summary>
         /// Предположительный индекс региона, в котором находится точка. Проблема в том, что регионы могут накладываться
         /// друг на друга, и этот индекс может не соответствовать тому, который нам нужен
@@ -85,6 +95,7 @@ namespace BaseAI
         public PathNode SpawnChildren(float stepLength, float rotationAngle, float timeDelta)
         {
             PathNode result = new PathNode(this);
+<<<<<<< HEAD
 
             //  Вращаем вокруг вертикальной оси, что в принципе не очень хорошо - надо бы более универсально, нормаль к поверхности взять, и всё такое
             result.Direction = Quaternion.AngleAxis(rotationAngle, Vector3.up) * Direction;
@@ -93,6 +104,16 @@ namespace BaseAI
             //  Перемещаемся в новую позицию
             result.Position = Position + result.Direction * stepLength;
 
+=======
+
+            //  Вращаем вокруг вертикальной оси, что в принципе не очень хорошо - надо бы более универсально, нормаль к поверхности взять, и всё такое
+            result.Direction = Quaternion.AngleAxis(rotationAngle, Vector3.up) * Direction;
+            result.Direction.Normalize();
+
+            //  Перемещаемся в новую позицию
+            result.Position = Position + result.Direction * stepLength;
+
+>>>>>>> origin/master
             //  Момент времени считаем
             result.TimeMoment = TimeMoment + timeDelta;
             

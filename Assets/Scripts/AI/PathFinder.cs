@@ -23,9 +23,25 @@ namespace BaseAI
         [SerializeField] private GameObject CollidersCollection;
 
         /// <summary>
+<<<<<<< HEAD
         /// Картограф - класс, хранящий информацию о геометрии уровня, регионах и прочем
         /// </summary>
         [SerializeField] private Cartographer cartographer;
+
+        /// <summary>
+        /// Маска слоя с препятствиями (для проверки столкновений)
+=======
+        /// Объект сцены, на котором размещены коллайдеры
+>>>>>>> origin/master
+        /// </summary>
+        private int obstaclesLayerMask;
+
+        /// <summary>
+        /// 
+        /// </summary>
+<<<<<<< HEAD
+=======
+        [SerializeField] private Cartographer сartographer;
 
         /// <summary>
         /// Маска слоя с препятствиями (для проверки столкновений)
@@ -35,6 +51,7 @@ namespace BaseAI
         /// <summary>
         /// 
         /// </summary>
+>>>>>>> origin/master
         private float rayRadius;
 
         public PathFinder()
@@ -52,6 +69,7 @@ namespace BaseAI
             //  Сначала проверяем, принадлежит ли точка какому-то региону
             int regionInd = -1;
             //  Первая проверка - того региона, который в точке указан, это будет быстрее
+<<<<<<< HEAD
             if(node.RegionIndex >= 0 && node.RegionIndex < cartographer.regions.Count)
             {
                 if (cartographer.regions[node.RegionIndex].Contains(node))
@@ -60,6 +78,15 @@ namespace BaseAI
             if(regionInd == -1)
             {
                 var region = cartographer.GetRegion(node);
+=======
+            if(node.RegionIndex >= 0 && node.RegionIndex < сartographer.regions.Count)
+            {
+                if (сartographer.regions[node.RegionIndex].Contains(node))
+                    regionInd = node.RegionIndex;
+            } else
+            {
+                var region = сartographer.GetRegion(node);
+>>>>>>> origin/master
                 if (region != null) regionInd = region.index;
             }
             if (regionInd == -1) return false;
@@ -69,7 +96,11 @@ namespace BaseAI
             //  Технически, тут можно как-то корректировать высоту - с небольшим шагом, позволить объекту спускаться или подниматься
             //  Но на это сейчас сил уже нет. Кстати, эту штуку можно через коллайдеры попробовать сделать
 
+<<<<<<< HEAD
             float distToFloor = node.Position.y - cartographer.SceneTerrain.SampleHeight(node.Position);
+=======
+            float distToFloor = node.Position.y - сartographer.SceneTerrain.SampleHeight(node.Position);
+>>>>>>> origin/master
             if (distToFloor > 2.0f || distToFloor < 0.0f)
             {
                 //Debug.Log("Incorrect node height");
@@ -85,6 +116,7 @@ namespace BaseAI
             //if (node.Parent != null && Physics.Linecast(node.Parent.Position, node.Position, obstaclesLayerMask))
             if (node.Parent != null && Physics.CheckSphere(node.Position, 1.0f, obstaclesLayerMask))
                 return false;
+<<<<<<< HEAD
             
             return true;
         }
@@ -171,6 +203,66 @@ namespace BaseAI
             Debug.Log("Финальная точка маршрута : " + result[result.Count-1].Position.ToString() + "; target : " + target.Position.ToString());
             return;
 
+=======
+            
+            return true;
+        }
+
+        private static float Heur(PathNode node, PathNode target, MovementProperties properties)
+        {
+            //  Эвристику подобрать!!!! - сейчас учитываются уже затраченное время, оставшееся до цели время и угол поворота
+            
+            /*float angle = Mathf.Abs(Vector3.Angle(node.Direction, target.Position - node.Position)) / properties.rotationAngle;
+            return node.TimeMoment + 2 * node.Distance(target) / properties.maxSpeed + angle * properties.deltaTime;*/
+        }
+
+        /// <summary>
+        /// Получение списка соседей для некоторой точки
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="properties"></param>
+        /// <returns></returns>
+        public List<PathNode> GetNeighbours(PathNode node, MovementProperties properties)
+        {
+            //  Вот тут хардкодить не надо, это должно быть в properties
+            //  У нас есть текущая точка, и свойства движения (там скорость, всякое такое)
+            //float step = 1f;
+            float step = properties.deltaTime * properties.maxSpeed;
+
+            List<PathNode> result = new List<PathNode>();
+
+            //  Внешний цикл отвечает за длину шага - либо 0 (остаёмся в точке), либо 1 - шагаем вперёд
+            for (int mult = 0; mult <= 1; ++mult)
+                //  Внутренний цикл перебирает углы поворота
+                for (int angleStep = -properties.angleSteps; angleStep <= properties.angleSteps; ++angleStep)
+                {
+                    PathNode next = node.SpawnChildren(step * mult, angleStep * properties.rotationAngle, properties.deltaTime);
+                    //  Точка передаётся по ссылке, т.к. возможно обновление региона, которому она принадлежит
+                    if (CheckWalkable(ref next))
+                    {
+                        result.Add(next);
+                        Debug.DrawLine(node.Position, next.Position, Color.blue, 10f);
+                    }
+                }
+            return result;
+        }
+
+        /// <summary>
+        /// Собственно метод построения пути
+        /// Если ничего не построил, то возвращает null в качестве списка вершин
+        /// </summary>
+        private bool FindPath(PathNode start, PathNode target, MovementProperties movementProperties, UpdatePathListDelegate updater)
+        {
+            /*
+            List<PathNode> result = new List<PathNode>();
+
+            updater(result);
+
+            Debug.Log("Маршрут обновлён");
+            Debug.Log("Финальная точка маршрута : " + result[result.Count-1].Position.ToString() + "; target : " + target.Position.ToString());
+            return;
+            */
+>>>>>>> origin/master
             //  Вызываем обновление пути. Теоретически мы обращаемся к списку из другого потока, надо бы синхронизировать как-то
         }
 
@@ -181,6 +273,7 @@ namespace BaseAI
         /// <returns></returns>
         public bool BuildRoute(PathNode start, PathNode finish, MovementProperties movementProperties, UpdatePathListDelegate updater)
         {
+<<<<<<< HEAD
             /*  Эта функция выполняет построение глобального пути. Её задача - определить, находятся ли 
              *  начальная и целевая точка в одном регионе. Если да, то просто запустить локальный
              *  маршрутизатор и построить маршрут в этом регионе.
@@ -215,11 +308,25 @@ namespace BaseAI
             return true;
         }
 
+=======
+            //  Тут какие-то базовые проверки при необходимости, и запуск задачи построения пути в отдельном потоке
+            //Task taskA = new Task(() => FindPath(start, finish, movementProperties, updater));
+            //taskA.Start();
+            //  Из функции выходим, когда путь будет построен - запустится делегат и обновит список точек
+            FindPath(start, finish, movementProperties, updater);
+            return true;
+        }
+
+>>>>>>> origin/master
         //// Start is called before the first frame update
         void Start()
         {
             //  Инициализируем картографа, ну и всё вроде бы
+<<<<<<< HEAD
             cartographer = new Cartographer(CollidersCollection);
+=======
+            сartographer = new Cartographer(CollidersCollection);
+>>>>>>> origin/master
             obstaclesLayerMask = 1 << LayerMask.NameToLayer("Obstacles");
             var rend = GetComponent<Renderer>();
             if (rend != null)
