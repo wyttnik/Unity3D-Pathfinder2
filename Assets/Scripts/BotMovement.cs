@@ -32,7 +32,7 @@ public class BotMovement : MonoBehaviour
     /// <summary>
     /// Целевая точка для движения - глобальная цель
     /// </summary>
-    [SerializeField] private Vector3 FinishPointVector3;  //  Конечная цель маршрута как Vector3
+    [SerializeField] private GameObject finish;           //  Конечная цель маршрута как Vector3
     private BaseAI.PathNode FinishPoint;                  //  Конечная цель маршрута как PathNode - вот оно нафига вообще?
     const int MinimumPathNodesLeft = 10;                  //  Минимальное число оставшихся точек в маршруте, при котором вызывается перестроение
 
@@ -78,10 +78,9 @@ public class BotMovement : MonoBehaviour
             throw new System.ArgumentNullException("Can't find global pathfinder!");
         }
 
-        //  Теоретически это заглушка - явно задаём целевую точку
-        FinishPointVector3 = new Vector3(65.5f, 11f, 28.5f);
-        FinishPoint = new BaseAI.PathNode(FinishPointVector3, Vector3.zero);
-
+        //  Создаём целевую точку из объекта на сцене. В целом это должно задаваться в рамках алгоритма как-то
+        FinishPoint = new BaseAI.PathNode(finish.transform.position, Vector3.zero);
+        lastPathfinderRequest = -5.0f;
     }
 
     /// <summary>
@@ -124,13 +123,14 @@ public class BotMovement : MonoBehaviour
     private bool RequestPathfinder()
     {
         if (FinishPoint == null || pathUpdateRequested || plannedPath != null) return false;
+        if (Time.fixedTime - lastPathfinderRequest < 0.5f) return false;
 
         //  Тут ещё бы проверить, что финальная точка в нашем текущем списке точек не совпадает с целью, иначе плохо всё будет
-        if (Vector3.Distance(transform.position, FinishPoint.Position) < movementProperties.epsilon)
+        if (Vector3.Distance(transform.position, FinishPoint.Position) < movementProperties.epsilon ||
+            currentPath != null && Vector3.Distance(currentPath[currentPath.Count-1].Position, FinishPoint.Position) < movementProperties.epsilon)
         {
             //  Всё, до цели дошли, сушите вёсла
             FinishPoint = null;
-            FinishPointVector3 = transform.position;
             plannedPath = null;
             currentPath = null;
             pathUpdateRequested = false;
@@ -145,9 +145,10 @@ public class BotMovement : MonoBehaviour
             //  Из начального положения начнём - вот только со временем беда. Технически надо бы брать момент в будущем, когда 
             //  начнём движение, но мы не знаем когда маршрут построится. Надеемся, что быстро
             startOfRoute = new BaseAI.PathNode(transform.position, transform.forward);
-
-        GlobalPathfinder.FindPath(startOfRoute, FinishPoint, movementProperties, UpdatePathListDelegate);
         pathUpdateRequested = true;
+        lastPathfinderRequest = Time.fixedTime;
+        GlobalPathfinder.BuildRoute(startOfRoute, FinishPoint, movementProperties, UpdatePathListDelegate);
+        
         return true;
     }
 
@@ -161,12 +162,12 @@ public class BotMovement : MonoBehaviour
         {
             float distanceToTarget = currentTarget.Distance(transform.position);
             //  Если до текущей целевой точки ещё далеко, то выходим
-            if (distanceToTarget >= movementProperties.epsilon || currentTarget.TimeMoment - Time.fixedTime > movementProperties.epsilon) return true;
+            if (distanceToTarget >= movementProperties.epsilon * 0.5f || currentTarget.TimeMoment - Time.fixedTime > movementProperties.epsilon * 0.1f) return true;
             //  Иначе удаляем её из маршрута и берём следующую
             currentPath.RemoveAt(0);
             if (currentPath.Count > 0)
             {
-                //  Берём очередную точку и на выход
+                //  Берём очередную точку и на выход (но точку не извлекаем!)
                 currentTarget = currentPath[0];
                 return true;
             }
@@ -282,13 +283,12 @@ public class BotMovement : MonoBehaviour
     {
         //  Выполняем обновление текущей целевой точки
         if (!UpdateCurrentTargetPoint())
-        {
             //  Это ситуация когда идти некуда - цели нет
             return false;
-        }
 
-        //  Этот кусочек для отладки - просто прыгаем когда нам нравится!!!!!
-        if (CheckJumping()) return true;
+        //  Если находимся в прыжке, то ничего делать не надо
+        if (CheckJumping()) return false;
+        //  Это зачем - непонятно
         if (TryToJump()) return true;
 
         //  Ну у нас тут точно есть целевая точка, вот в неё и пойдём
@@ -317,7 +317,8 @@ public class BotMovement : MonoBehaviour
         else
         {
             //  Дедлайн ещё не скоро!!! Стоим спим
-            if (currentTarget.Distance(transform.position) < movementProperties.epsilon) return true;
+            if (currentTarget.Distance(transform.position) < movementProperties.epsilon)
+                return true;
 
             transform.position = transform.position + actualStep * transform.forward / remainedTime;
         }
@@ -339,7 +340,7 @@ public class BotMovement : MonoBehaviour
         if (!walking) return;
 
         //  Собственно движение
-        MoveBot();
-        MoveLegs();
+        if(MoveBot())
+            MoveLegs();
     }
 }
