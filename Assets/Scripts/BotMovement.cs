@@ -53,6 +53,10 @@ public class BotMovement : MonoBehaviour
     private bool isJumpimg;
 
     /// <summary>
+    /// Время предыдущего обращения к планировщику - не более одного раза в три секунды
+    /// </summary>
+    private float lastPathfinderRequest;
+    /// <summary>
     /// Заглушка - двигается ли бот или нет
     /// </summary>
     [SerializeField] private bool walking = false;
