@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -84,7 +84,14 @@ public class BotMovement : MonoBehaviour
 
         //  Создаём целевую точку из объекта на сцене. В целом это должно задаваться в рамках алгоритма как-то
         FinishPoint = new BaseAI.PathNode(finish.transform.position, Vector3.zero);
+<<<<<<< HEAD
         lastPathfinderRequest = -5.0f;
+=======
+<<<<<<< HEAD
+        lastPathfinderRequest = -5.0f;
+=======
+>>>>>>> origin/master
+>>>>>>> origin/master
     }
 
     /// <summary>
@@ -150,7 +157,14 @@ public class BotMovement : MonoBehaviour
             //  начнём движение, но мы не знаем когда маршрут построится. Надеемся, что быстро
             startOfRoute = new BaseAI.PathNode(transform.position, transform.forward);
         pathUpdateRequested = true;
+<<<<<<< HEAD
         lastPathfinderRequest = Time.fixedTime;
+=======
+<<<<<<< HEAD
+        lastPathfinderRequest = Time.fixedTime;
+=======
+>>>>>>> origin/master
+>>>>>>> origin/master
         GlobalPathfinder.BuildRoute(startOfRoute, FinishPoint, movementProperties, UpdatePathListDelegate);
         
         return true;
@@ -291,7 +305,15 @@ public class BotMovement : MonoBehaviour
             return false;
 
         //  Если находимся в прыжке, то ничего делать не надо
+<<<<<<< HEAD
         if (CheckJumping()) return false;
+=======
+<<<<<<< HEAD
+        if (CheckJumping()) return false;
+=======
+        if (CheckJumping()) return true;
+>>>>>>> origin/master
+>>>>>>> origin/master
         //  Это зачем - непонятно
         if (TryToJump()) return true;
 
