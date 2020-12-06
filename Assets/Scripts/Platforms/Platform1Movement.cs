@@ -35,6 +35,13 @@ public class Platform1Movement : MonoBehaviour, BaseAI.IBaseRegion
         if (!moving) return;
 
         transform.RotateAround(rotationCenter, Vector3.up, Time.deltaTime*rotationSpeed);
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/master
+>>>>>>> origin/master
     }
 
     void IBaseRegion.TransformPoint(ref PathNode parent, ref PathNode node) {
@@ -82,5 +89,13 @@ public class Platform1Movement : MonoBehaviour, BaseAI.IBaseRegion
     void IBaseRegion.AddTransferTime(IBaseRegion source, IBaseRegion dest)
     {
         throw new System.NotImplementedException();
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/master
+>>>>>>> origin/master
+>>>>>>> origin/master
     }
 }

@@ -95,7 +95,14 @@ namespace BaseAI
 
         public IList<IBaseRegion> Neighbors { get; set; } = new List<IBaseRegion>();
 
+<<<<<<< HEAD
 
+=======
+<<<<<<< HEAD
+
+=======
+>>>>>>> origin/master
+>>>>>>> origin/master
         public SphereRegion(SphereCollider sample)
         {
             body = sample;
@@ -113,8 +120,16 @@ namespace BaseAI
         /// <param name="node"></param>
         /// <returns></returns>
         public bool Contains(PathNode node) { return body.bounds.Contains(node.Position); }
+<<<<<<< HEAD
 
 
+=======
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> origin/master
+>>>>>>> origin/master
 
         /// <summary>
         /// Время перехода через область насквозь, от одного до другого 
@@ -211,7 +226,19 @@ namespace BaseAI
     public class Cartographer
     {
         //  Список регионов
+<<<<<<< HEAD
         public List<IBaseRegion> regions = new List<IBaseRegion>();
+=======
+<<<<<<< HEAD
+        public List<IBaseRegion> regions = new List<IBaseRegion>();
+=======
+<<<<<<< HEAD
+        public List<IBaseRegion> regions = new List<IBaseRegion>();
+=======
+        public List<BaseRegion> regions = new List<BaseRegion>();
+>>>>>>> origin/master
+>>>>>>> origin/master
+>>>>>>> origin/master
 
         //  Поверхность (Terrain) сцены
         public Terrain SceneTerrain;
@@ -279,7 +306,19 @@ namespace BaseAI
         /// </summary>
         /// <param name="node"></param>
         /// <returns>Индекс региона, -1 если не принадлежит (не проходима)</returns>
+<<<<<<< HEAD
         public IBaseRegion GetRegion(PathNode node)
+=======
+<<<<<<< HEAD
+        public IBaseRegion GetRegion(PathNode node)
+=======
+<<<<<<< HEAD
+        public IBaseRegion GetRegion(PathNode node)
+=======
+        public BaseRegion GetRegion(PathNode node)
+>>>>>>> origin/master
+>>>>>>> origin/master
+>>>>>>> origin/master
         {
             for (var i = 0; i < regions.Count; ++i)
                 //  Метод полиморфный и для всяких платформ должен быть корректно в них реализован

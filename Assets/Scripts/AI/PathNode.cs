@@ -11,18 +11,52 @@ namespace BaseAI
     {
         public Vector3 Position { get; set; }         //  Позиция в глобальных координатах
         public Vector3 Direction { get; set; }        //  Направление
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/master
+>>>>>>> origin/master
         public float TimeMoment { get; set; }         //  Момент времени       
         /// <summary>
         /// Нужно ли из этой вершины прыгать
         /// </summary>
         public bool JumpNode { get; set; } = false; 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+=======
+        public float TimeMoment { get; set; }         //  Момент времени        
+>>>>>>> origin/master
+>>>>>>> origin/master
+>>>>>>> origin/master
         /// <summary>
         /// Родительская вершина - предшествующая текущей в пути от начальной к целевой
         /// </summary>
         public PathNode Parent = null;       //  Родительский узел
+<<<<<<< HEAD
 
         public float H { get; set; }  //  Оставшийся путь до цели
 
+=======
+<<<<<<< HEAD
+
+        public float H { get; set; }  //  Оставшийся путь до цели
+
+=======
+<<<<<<< HEAD
+
+        public float H { get; set; }  //  Оставшийся путь до цели
+
+=======
+
+        public float H { get; set; }  //  Оставшийся путь до цели
+
+>>>>>>> origin/master
+>>>>>>> origin/master
+>>>>>>> origin/master
         /// <summary>
         /// Предположительный индекс региона, в котором находится точка. Проблема в том, что регионы могут накладываться
         /// друг на друга, и этот индекс может не соответствовать тому, который нам нужен
@@ -85,6 +119,17 @@ namespace BaseAI
         public PathNode SpawnChildren(float stepLength, float rotationAngle, float timeDelta)
         {
             PathNode result = new PathNode(this);
+<<<<<<< HEAD
+
+            //  Вращаем вокруг вертикальной оси, что в принципе не очень хорошо - надо бы более универсально, нормаль к поверхности взять, и всё такое
+            result.Direction = Quaternion.AngleAxis(rotationAngle, Vector3.up) * Direction;
+            result.Direction.Normalize();
+
+            //  Перемещаемся в новую позицию
+            result.Position = Position + result.Direction * stepLength;
+
+=======
+<<<<<<< HEAD
 
             //  Вращаем вокруг вертикальной оси, что в принципе не очень хорошо - надо бы более универсально, нормаль к поверхности взять, и всё такое
             result.Direction = Quaternion.AngleAxis(rotationAngle, Vector3.up) * Direction;
@@ -101,6 +146,39 @@ namespace BaseAI
             //  Добавка для эвристики - нужна ли?
             //if (Mathf.Abs(rotationAngle) > 0.001f) result.TimeMoment += 0.3f;
 
+=======
+<<<<<<< HEAD
+
+            //  Вращаем вокруг вертикальной оси, что в принципе не очень хорошо - надо бы более универсально, нормаль к поверхности взять, и всё такое
+            result.Direction = Quaternion.AngleAxis(rotationAngle, Vector3.up) * Direction;
+            result.Direction.Normalize();
+
+            //  Перемещаемся в новую позицию
+            result.Position = Position + result.Direction * stepLength;
+
+=======
+
+            //  Вращаем вокруг вертикальной оси, что в принципе не очень хорошо - надо бы более универсально, нормаль к поверхности взять, и всё такое
+            result.Direction = Quaternion.AngleAxis(rotationAngle, Vector3.up) * Direction;
+            result.Direction.Normalize();
+
+            //  Перемещаемся в новую позицию
+            result.Position = Position + result.Direction * stepLength;
+
+>>>>>>> origin/master
+>>>>>>> origin/master
+            //  Момент времени считаем
+            result.TimeMoment = TimeMoment + timeDelta;
+            
+            result.RegionIndex = RegionIndex;
+
+            //  Добавка для эвристики - нужна ли?
+            //if (Mathf.Abs(rotationAngle) > 0.001f) result.TimeMoment += 0.3f;
+
+<<<<<<< HEAD
+=======
+>>>>>>> origin/master
+>>>>>>> origin/master
             return result;
         }
         /// <summary>
