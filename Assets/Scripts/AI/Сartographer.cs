@@ -37,20 +37,8 @@ namespace BaseAI
         /// Является ли регион динамическим
         /// </summary>
         bool Dynamic { get; }
-        
-        /// <summary>
-        /// Обе точки в глобальных координатах, но находятся в перемещающемся регионе.
-        /// Эта функция добавляет в node смещение, обеспечиваемое движением самого региона.
-        /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="node"></param>
-        void TransformPoint(PathNode parent, PathNode node);
 
-        /// <summary>
-        /// Преобразует глобальные координаты в локальные координаты региона
-        /// </summary>
-        /// <param name="node"></param>
-        void TransformGlobalToLocal(PathNode node);
+        void TransformPoint(PathNode parent, PathNode node);
 
         /// <summary>
         /// Квадрат расстояния до ближайшей точки региона (без учёта времени)
@@ -105,8 +93,6 @@ namespace BaseAI
         bool IBaseRegion.Dynamic { get; } = false;
         void IBaseRegion.TransformPoint(PathNode parent, PathNode node) { return; }
 
-        void IBaseRegion.TransformGlobalToLocal(PathNode node) { /*ничего не делаем - регион статический*/}
-
         public IList<IBaseRegion> Neighbors { get; set; } = new List<IBaseRegion>();
 
 
@@ -127,6 +113,8 @@ namespace BaseAI
         /// <param name="node"></param>
         /// <returns></returns>
         public bool Contains(PathNode node) { return body.bounds.Contains(node.Position); }
+
+
 
         /// <summary>
         /// Время перехода через область насквозь, от одного до другого 
@@ -168,7 +156,7 @@ namespace BaseAI
         
         bool IBaseRegion.Dynamic { get; } = false;
         void IBaseRegion.TransformPoint(PathNode parent, PathNode node) { return; }
-        void IBaseRegion.TransformGlobalToLocal(PathNode node) { /*ничего не делаем - регион статический*/}
+
         public IList<IBaseRegion> Neighbors { get; set; } = new List<IBaseRegion>();
         
         /// <summary>
@@ -267,12 +255,6 @@ namespace BaseAI
                 throw new System.Exception("You can't add any other types of colliders except of Box and Sphere!");
             }
 
-            var platform = GameObject.FindObjectOfType<Platform1Movement>();
-            regions.Add(platform);
-
-            for(int i = 0; i < regions.Count; ++i)
-                Debug.Log("Region : " + i + " -> " + regions[i].GetCenter().ToString());
-
             //  Настраиваем связи между регионами - не самая лучшая идея, но для крупных регионов сойдёт
             regions[0].Neighbors.Add(regions[1]);
             regions[0].Neighbors.Add(regions[3]);
@@ -284,23 +266,10 @@ namespace BaseAI
             regions[2].Neighbors.Add(regions[4]);
 
             regions[3].Neighbors.Add(regions[0]);
-            regions[3].Neighbors.Add(regions[9]);
 
             regions[4].Neighbors.Add(regions[2]);
 
-            regions[5].Neighbors.Add(regions[7]);
-            regions[5].Neighbors.Add(regions[9]);
-            
-            regions[6].Neighbors.Add(regions[8]);
-            regions[6].Neighbors.Add(regions[7]);
 
-            regions[7].Neighbors.Add(regions[5]);
-            regions[7].Neighbors.Add(regions[6]);
-
-            regions[8].Neighbors.Add(regions[6]);
-
-            regions[9].Neighbors.Add(regions[3]);
-            regions[9].Neighbors.Add(regions[5]);
             //  Платформы потом. Для них реализовать класс "BaseRegion", и его подсовывать в этот список, обновляя 
             //  списки смежности
         }
@@ -316,13 +285,8 @@ namespace BaseAI
                 //  Метод полиморфный и для всяких платформ должен быть корректно в них реализован
                 if (regions[i].Contains(node))
                     return regions[i];
-            //Debug.Log("Not found region for " + node.Position.ToString());
+            Debug.Log("Not found region for " + node.Position.ToString());
             return null;
-        }
-
-        public bool IsInRegion(PathNode node, int RegionIndex)
-        {
-            return RegionIndex>=0 && RegionIndex < regions.Count && regions[RegionIndex].Contains(node);
         }
     }
 }

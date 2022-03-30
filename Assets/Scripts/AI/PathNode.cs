@@ -82,7 +82,7 @@ namespace BaseAI
         /// <param name="rotationAngle">Угол поворота вокруг оси OY в градусах</param>
         /// <param name="timeDelta">Впремя, потраченное на шаг</param>
         /// <returns></returns>
-        public PathNode SpawnChild(float stepLength, float rotationAngle, float timeDelta)
+        public PathNode SpawnChildren(float stepLength, float rotationAngle, float timeDelta)
         {
             PathNode result = new PathNode(this);
 
@@ -103,37 +103,6 @@ namespace BaseAI
 
             return result;
         }
-        /// <summary>
-        /// Точка прыжка вперёд - для проверки в PathFinder
-        /// На прыжок не влияют модификаторы динамических платформ
-        /// </summary>
-        /// <param name="mp"></param>
-        /// <returns></returns>
-        public Vector3 ForwardJumpPoint(MovementProperties mp)
-        {
-            return Position + mp.jumpLength * Direction;
-        }
-
-        public PathNode SpawnJumpForward(MovementProperties mp)
-        {
-            PathNode result = new PathNode(this);
-
-            result.Direction = Direction;
-
-            //  Перемещаемся в новую позицию
-            result.Position = Position + Direction * mp.jumpLength;
-
-            //  Момент времени считаем
-            result.TimeMoment = TimeMoment + mp.jumpTime;
-
-            //  Индекс региона должен быть пересчитан
-            result.RegionIndex = -1;
-
-            result.JumpNode = true;
-
-            return result;
-        }
-
         /// <summary>
         /// Дискретизация положения точки к неторому узлу пространственной сетки.
         /// Используется для того, чтобы контролировать какие точки мы уже посещали, в коллекциях типа HashSet

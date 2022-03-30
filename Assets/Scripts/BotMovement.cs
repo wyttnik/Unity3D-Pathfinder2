@@ -51,7 +51,7 @@ public class BotMovement : MonoBehaviour
     /// Находимся ли в полёте (в состоянии прыжка)
     /// </summary>
     private bool isJumpimg;
-    private float jumpTestTime;
+
     /// <summary>
     /// Время предыдущего обращения к планировщику - не более одного раза в три секунды
     /// </summary>
@@ -143,9 +143,8 @@ public class BotMovement : MonoBehaviour
 
         //  Тут два варианта - либо запускаем построение пути от хвоста списка, либо от текущей точки
         BaseAI.PathNode startOfRoute = null;
-        //if (currentPath != null && currentPath.Count > 0)
-        if (currentTarget != null)
-            startOfRoute = currentTarget;
+        if (currentPath != null && currentPath.Count > 0)
+            startOfRoute = currentPath[currentPath.Count - 1];
         else
             //  Из начального положения начнём - вот только со временем беда. Технически надо бы брать момент в будущем, когда 
             //  начнём движение, но мы не знаем когда маршрут построится. Надеемся, что быстро
@@ -177,12 +176,11 @@ public class BotMovement : MonoBehaviour
                 return true;
             }
             else
-            {                
-                //  А вот тут надо будет проверять, есть ли уже построенный маршрут
-                currentPath = null;
-                RequestPathfinder();
+            {
                 currentTarget = null;
-                
+                currentPath = null;
+                //  А вот тут надо будет проверять, есть ли уже построенный маршрут
+                RequestPathfinder();
                 Debug.Log("Запрошено построение маршрута");
             }
         }
@@ -226,16 +224,12 @@ public class BotMovement : MonoBehaviour
     {
         //  Столкнулись - значит, приземлились
         //  Возможно, надо разделить - Terrain и препятствия разнести по разным слоям
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Floor"))
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Obstacles"))
         {
             var rb = GetComponent<Rigidbody>();
             //  Сбрасываем скорость перед прыжком
             rb.velocity = Vector3.zero;
-            if (isJumpimg)
-            {
-                isJumpimg = false;
-                Debug.Log("Jump time : " + (Time.time - jumpTestTime).ToString());
-            }
+            isJumpimg = false;
         }
     }
 
@@ -263,19 +257,6 @@ public class BotMovement : MonoBehaviour
         }
     }
 
-    void JumpDoIt()
-    {
-        var rb = GetComponent<Rigidbody>();
-        //  Сбрасываем скорость перед прыжком
-        rb.velocity = Vector3.zero;
-        var jump = transform.forward + 2 * transform.up;
-        float jumpForce = movementProperties.jumpForce;
-        rb.AddForce(jump * jumpForce, ForceMode.Impulse);
-        isJumpimg = true;
-
-        jumpTestTime = Time.time;
-    }
-
     /// <summary>
     /// Пытаемся прыгнуть вперёд и вверх (на месте не умеем прыгать)
     /// </summary>
@@ -286,7 +267,13 @@ public class BotMovement : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            JumpDoIt();
+            var rb = GetComponent<Rigidbody>();
+            //  Сбрасываем скорость перед прыжком
+            rb.velocity = Vector3.zero;
+            var jump = transform.forward + 2 * transform.up;
+            float jumpForce = movementProperties.jumpForce;
+            rb.AddForce(jump * jumpForce, ForceMode.Impulse);
+            isJumpimg = true;
             return true;
         }
         return false;
@@ -305,22 +292,10 @@ public class BotMovement : MonoBehaviour
 
         //  Если находимся в прыжке, то ничего делать не надо
         if (CheckJumping()) return false;
-        //  Это зачем - непонятно. Вроде как обработчик
+        //  Это зачем - непонятно
         if (TryToJump()) return true;
 
         //  Ну у нас тут точно есть целевая точка, вот в неё и пойдём
-        
-        //  Сначала нужно обработать прыжок, если он требуется
-        if(currentTarget.JumpNode)
-        {
-            JumpDoIt(); //  Это само собой
-            currentTarget = null;  // Точку надо извлечь - уже прыгнули
-            currentPath.RemoveAt(0);  //  Тут очень плохая идея это всё делать, но в целом можно
-            if (currentPath.Count > 0)
-                currentTarget = currentPath[0];
-            return false; //  ножками не двигаем
-        }
-
         //  Определяем угол поворота, и расстояние до целевой
         Vector3 directionToTarget = currentTarget.Position - transform.position;
         float angle = Vector3.SignedAngle(transform.forward, directionToTarget, Vector3.up);

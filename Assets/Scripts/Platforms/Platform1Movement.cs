@@ -47,21 +47,6 @@ public class Platform1Movement : MonoBehaviour, BaseAI.IBaseRegion
         return;
     }
 
-    void IBaseRegion.TransformGlobalToLocal(PathNode node) 
-    {
-        //  Вот тут всё плохо - определяем момент времени, через который нам нужна точка
-        float timeDelta = node.TimeMoment - Time.time;
-        //  Откручиваем точку обратно в направлении, противоположном движению региона
-
-        Vector3 dir = node.Position - rotationCenter;
-        node.Position = rotationCenter + Quaternion.AngleAxis(-rotationSpeed * timeDelta, Vector3.up) * dir;
-        node.Direction = Quaternion.AngleAxis(-rotationSpeed * timeDelta, Vector3.up) * node.Direction;
-        //  Преобразуем в локальные координаты
-        node.Position = transform.InverseTransformPoint(node.Position);
-        node.Direction = transform.InverseTransformDirection(node.Direction);
-        //  Всё вроде бы
-    }
-
     bool IBaseRegion.Contains(PathNode node)
     {
         //  Самая жуткая функция - тут думать надо
