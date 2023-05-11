@@ -16,10 +16,13 @@ public class Platform1Movement : MonoBehaviour, BaseAI.IBaseRegion
     /// </summary>
     public SphereCollider body;
 
+    public IBaseRegion parent { get; set; } = null;
+
     /// <summary>
     /// Индекс региона в списке регионов
     /// </summary>
     public int index { get; set; } = -1;
+    public float distance { get; set; } = float.PositiveInfinity;
     bool IBaseRegion.Dynamic { get; } = true;
 
     public IList<BaseAI.IBaseRegion> Neighbors { get; set; } = new List<BaseAI.IBaseRegion>();
@@ -47,8 +50,25 @@ public class Platform1Movement : MonoBehaviour, BaseAI.IBaseRegion
         return;
     }
 
+    void IBaseRegion.TransformGlobalToLocal(PathNode node) 
+    {
+        //  Вот тут всё плохо - определяем момент времени, через который нам нужна точка
+        float timeDelta = node.TimeMoment - Time.time;
+        //  Откручиваем точку обратно в направлении, противоположном движению региона
+
+        Vector3 dir = node.Position - rotationCenter;
+        node.Position = rotationCenter + Quaternion.AngleAxis(-rotationSpeed * timeDelta, Vector3.up) * dir;
+        node.Direction = Quaternion.AngleAxis(-rotationSpeed * timeDelta, Vector3.up) * node.Direction;
+        //  Преобразуем в локальные координаты
+        node.Position = transform.InverseTransformPoint(node.Position);
+        node.Direction = transform.InverseTransformDirection(node.Direction);
+        //  Всё вроде бы
+    }
+
     bool IBaseRegion.Contains(PathNode node)
     {
+        var coll = GetComponent<Collider>();
+        if (coll != null && coll.bounds.Contains(node.Position) && !node.JumpNode) return true;
         //  Самая жуткая функция - тут думать надо
         //  Вывести точку через 2 секунды - положение платформы через 2 секунды в будущем
         float deltaTime = node.TimeMoment - Time.time;
@@ -57,7 +77,7 @@ public class Platform1Movement : MonoBehaviour, BaseAI.IBaseRegion
         Vector3 dir = node.Position - rotationCenter;
         Vector3 newPoint = rotationCenter + Quaternion.AngleAxis(-rotationSpeed * deltaTime, Vector3.up) * dir;
         //  Осторожно! Тут два коллайдера у объекта, проверить какой именно вытащили.
-        var coll = GetComponent<Collider>();
+        
         return coll != null && coll.bounds.Contains(newPoint);
     }
 

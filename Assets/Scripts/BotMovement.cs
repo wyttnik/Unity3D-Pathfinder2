@@ -1,5 +1,10 @@
-﻿using System.Collections;
+﻿using BaseAI;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class BotMovement : MonoBehaviour
@@ -51,7 +56,7 @@ public class BotMovement : MonoBehaviour
     /// Находимся ли в полёте (в состоянии прыжка)
     /// </summary>
     private bool isJumpimg;
-
+    private float jumpTestTime;
     /// <summary>
     /// Время предыдущего обращения к планировщику - не более одного раза в три секунды
     /// </summary>
@@ -59,7 +64,7 @@ public class BotMovement : MonoBehaviour
     /// <summary>
     /// Заглушка - двигается ли бот или нет
     /// </summary>
-    [SerializeField] private bool walking = false;
+    [SerializeField] private bool walking = true;
 
     //  Сила, тянущая "вверх" упавшего бота и заставляющая его вставать
     [SerializeField] float force = 5.0f;
@@ -71,6 +76,8 @@ public class BotMovement : MonoBehaviour
     [SerializeField] private GameObject leftLegJoint = null;
     [SerializeField] private GameObject rightLegJoint = null;
 
+    private PathNode lookAt = null;
+
     void Start()
     {
         //  Ищем глобальный планировщик на сцене - абсолютно дурацкий подход, но так можно
@@ -81,7 +88,6 @@ public class BotMovement : MonoBehaviour
             Debug.Log("Не могу найти глобальный планировщик!");
             throw new System.ArgumentNullException("Can't find global pathfinder!");
         }
-
         //  Создаём целевую точку из объекта на сцене. В целом это должно задаваться в рамках алгоритма как-то
         FinishPoint = new BaseAI.PathNode(finish.transform.position, Vector3.zero);
         lastPathfinderRequest = -5.0f;
@@ -116,7 +122,20 @@ public class BotMovement : MonoBehaviour
             return;
         }
         //  Просто перекидываем список, и всё
+        
         plannedPath = pathNodes;
+        if (plannedPath != null)
+        {
+            if (!walking && !plannedPath[plannedPath.Count - 1].JumpNode)
+            {
+                lookAt = plannedPath[plannedPath.Count - 1];
+                //Vector3 dir = lookAt.Position - transform.position;
+                //float a = Vector3.SignedAngle(transform.forward, dir, Vector3.up);
+                //transform.Rotate(Vector3.up, a);
+                plannedPath = null;
+            }
+        }
+        
         pathUpdateRequested = false;
     }
 
@@ -133,6 +152,7 @@ public class BotMovement : MonoBehaviour
         if (Vector3.Distance(transform.position, FinishPoint.Position) < movementProperties.epsilon ||
             currentPath != null && Vector3.Distance(currentPath[currentPath.Count-1].Position, FinishPoint.Position) < movementProperties.epsilon)
         {
+            Debug.Log("This is the end");
             //  Всё, до цели дошли, сушите вёсла
             FinishPoint = null;
             plannedPath = null;
@@ -143,14 +163,16 @@ public class BotMovement : MonoBehaviour
 
         //  Тут два варианта - либо запускаем построение пути от хвоста списка, либо от текущей точки
         BaseAI.PathNode startOfRoute = null;
-        if (currentPath != null && currentPath.Count > 0)
-            startOfRoute = currentPath[currentPath.Count - 1];
+        //if (currentPath != null && currentPath.Count > 0)
+        if (currentTarget != null)
+            startOfRoute = currentTarget;
         else
             //  Из начального положения начнём - вот только со временем беда. Технически надо бы брать момент в будущем, когда 
             //  начнём движение, но мы не знаем когда маршрут построится. Надеемся, что быстро
             startOfRoute = new BaseAI.PathNode(transform.position, transform.forward);
         pathUpdateRequested = true;
         lastPathfinderRequest = Time.fixedTime;
+        
         GlobalPathfinder.BuildRoute(startOfRoute, FinishPoint, movementProperties, UpdatePathListDelegate);
         
         return true;
@@ -165,8 +187,11 @@ public class BotMovement : MonoBehaviour
         if (currentTarget != null)
         {
             float distanceToTarget = currentTarget.Distance(transform.position);
-            //  Если до текущей целевой точки ещё далеко, то выходим
-            if (distanceToTarget >= movementProperties.epsilon * 0.5f || currentTarget.TimeMoment - Time.fixedTime > movementProperties.epsilon * 0.1f) return true;
+            //Если до текущей целевой точки ещё далеко, то выходим
+            if (distanceToTarget >= movementProperties.epsilon * 0.5f || currentTarget.TimeMoment - Time.fixedTime > movementProperties.epsilon * 0.1f)
+            {
+                return true;
+            }
             //  Иначе удаляем её из маршрута и берём следующую
             currentPath.RemoveAt(0);
             if (currentPath.Count > 0)
@@ -176,12 +201,11 @@ public class BotMovement : MonoBehaviour
                 return true;
             }
             else
-            {
-                currentTarget = null;
-                currentPath = null;
+            {                
                 //  А вот тут надо будет проверять, есть ли уже построенный маршрут
+                currentPath = null;
                 RequestPathfinder();
-                Debug.Log("Запрошено построение маршрута");
+                currentTarget = null;
             }
         }
         else
@@ -224,12 +248,25 @@ public class BotMovement : MonoBehaviour
     {
         //  Столкнулись - значит, приземлились
         //  Возможно, надо разделить - Terrain и препятствия разнести по разным слоям
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Obstacles"))
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Floor"))
         {
             var rb = GetComponent<Rigidbody>();
             //  Сбрасываем скорость перед прыжком
             rb.velocity = Vector3.zero;
-            isJumpimg = false;
+            if (isJumpimg)
+            {
+                isJumpimg = false;
+                if (collision.gameObject.GetComponent<Platform1Movement>() != null)
+                {
+                    //transform.position = currentTarget.Position;
+                    
+                    transform.parent = collision.collider.transform;
+                    walking = false;
+                }
+                else walking = true;
+                currentTarget = null;
+                currentPath.RemoveAt(0);
+            }
         }
     }
 
@@ -257,6 +294,19 @@ public class BotMovement : MonoBehaviour
         }
     }
 
+    void JumpDoIt()
+    {
+        var rb = GetComponent<Rigidbody>();
+        //  Сбрасываем скорость перед прыжком
+        rb.velocity = Vector3.zero;
+        var jump = transform.forward + 2 * transform.up;
+        float jumpForce = movementProperties.jumpForce;
+        rb.AddForce(jump * jumpForce, ForceMode.Impulse);
+        gameObject.transform.parent = null;
+        isJumpimg = true;
+        jumpTestTime = Time.time;
+    }
+
     /// <summary>
     /// Пытаемся прыгнуть вперёд и вверх (на месте не умеем прыгать)
     /// </summary>
@@ -267,13 +317,7 @@ public class BotMovement : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            var rb = GetComponent<Rigidbody>();
-            //  Сбрасываем скорость перед прыжком
-            rb.velocity = Vector3.zero;
-            var jump = transform.forward + 2 * transform.up;
-            float jumpForce = movementProperties.jumpForce;
-            rb.AddForce(jump * jumpForce, ForceMode.Impulse);
-            isJumpimg = true;
+            JumpDoIt();
             return true;
         }
         return false;
@@ -285,17 +329,50 @@ public class BotMovement : MonoBehaviour
     /// <returns>false, если требуется обновление точки маршрута</returns>
     bool MoveBot()
     {
+        if (CheckJumping()) return false;
+        
+        if (!walking)
+        {
+            if (lookAt != null)
+            {
+                Vector3 dir = lookAt.Position - transform.position;
+                float a = Vector3.SignedAngle(transform.forward, dir, Vector3.up);
+                transform.Rotate(Vector3.up, a);
+            }
+        }
+
         //  Выполняем обновление текущей целевой точки
         if (!UpdateCurrentTargetPoint())
             //  Это ситуация когда идти некуда - цели нет
             return false;
 
         //  Если находимся в прыжке, то ничего делать не надо
-        if (CheckJumping()) return false;
-        //  Это зачем - непонятно
+        //if (CheckJumping()) return false; // ******************************** uncomment later
+        //  Это зачем - непонятно. Вроде как обработчик
         if (TryToJump()) return true;
-
         //  Ну у нас тут точно есть целевая точка, вот в неё и пойдём
+
+        //  Сначала нужно обработать прыжок, если он требуется
+        if (currentTarget.JumpNode)
+        {
+            Vector3 dir = currentTarget.Position - transform.position;
+            float a = Vector3.SignedAngle(transform.forward, dir, Vector3.up);
+            a = Mathf.Clamp(a, -movementProperties.rotationAngle, movementProperties.rotationAngle);
+            transform.Rotate(Vector3.up, a);
+            JumpDoIt(); //  Это само собой
+            //currentTarget = null;  // Точку надо извлечь - уже прыгнули
+            //currentPath.RemoveAt(0);  //  Тут очень плохая идея это всё делать, но в целом можно
+            //if (currentPath.Count > 0)
+            //    currentTarget = currentPath[0];
+            return false; //  ножками не двигаем
+        }
+
+        if (!walking)
+        {
+            return false;
+        }
+
+
         //  Определяем угол поворота, и расстояние до целевой
         Vector3 directionToTarget = currentTarget.Position - transform.position;
         float angle = Vector3.SignedAngle(transform.forward, directionToTarget, Vector3.up);
@@ -304,13 +381,18 @@ public class BotMovement : MonoBehaviour
 
         //  Зная угол, нужно получить направление движения (мы можем сразу не повернуть в сторону цели)
         //  Выполняем вращение вокруг оси Oy
-
+        Debug.DrawLine(transform.position, transform.position + transform.forward, Color.cyan, 1000000);
         //  Угол определили, теперь, собственно, определяем расстояние для шага
         float stepLength = directionToTarget.magnitude;
         float actualStep = Mathf.Clamp(stepLength, 0.0f, movementProperties.maxSpeed * Time.deltaTime);
         //  Поворот может быть проблемой, если слишком близко подошли к целевой точке
         //  Надо как-то следить за скоростью, она не может превышать расстояние до целевой точки???
+        //Debug.Log($"BeforeRotate curTarget = {currentTarget.Position} curPos = {transform.position}" +
+        //    $" curForward = {transform.forward}");
+        //if (currentTarget.JumpNode) Debug.Log("CHeck now");
+        //Debug.DrawLine(transform.position, transform.position + transform.forward, Color.green, 1000000f);
         transform.Rotate(Vector3.up, angle);
+        //Debug.DrawLine(transform.position, transform.position + transform.forward, Color.yellow, 1000000f);
 
         //  Время прибытия - оставшееся время
         var remainedTime = currentTarget.TimeMoment - Time.fixedTime;
@@ -329,6 +411,7 @@ public class BotMovement : MonoBehaviour
         return true;
     }
 
+
     /// <summary>
     /// Вызывается каждый кадр
     /// </summary>
@@ -340,8 +423,6 @@ public class BotMovement : MonoBehaviour
         {
             GetComponent<Rigidbody>().AddForceAtPosition(5 * force * Vector3.up, transform.position + 3.0f * transform.up, ForceMode.Force);
         };
-
-        if (!walking) return;
 
         //  Собственно движение
         if(MoveBot())

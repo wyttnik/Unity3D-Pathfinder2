@@ -29,18 +29,18 @@ namespace BaseAI
         // Update is called once per frame
         void Update()
         {
-            var targetPoint = transform.position + transform.forward * 33.62f;
-            PathNode target = new PathNode(targetPoint, Vector3.zero);
-            target.TimeMoment = Time.time + 2.6f;
+            //var targetPoint = transform.position + transform.forward * 33.62f;
+            //PathNode target = new PathNode(targetPoint, Vector3.zero);
+            //target.TimeMoment = Time.time + 2.6f;
 
-            if (Time.time > shootTime + 0.2f && platf.GetComponent<IBaseRegion>().Contains(target))
-            {
-                shootTime = Time.time;
-                Shoot();
-            }
+            //if (Time.time > shootTime + 0.2f && platf.GetComponent<IBaseRegion>().Contains(target))
+            //{
+            //    shootTime = Time.time;
+            //    Shoot();
+            //}
 
-            if (Input.GetButtonDown("Fire1"))
-                Shoot();
+            //if (Input.GetButtonDown("Fire1"))
+            //    Shoot();
         }
     }
 }

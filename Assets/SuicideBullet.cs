@@ -28,7 +28,7 @@ public class SuicideBullet : MonoBehaviour
     }
     private void OnCollisionEnter(Collision collision)
     {
-        Debug.Log("Bullet landed : " + (Time.time - startTime) + " sec; Distance : " + Vector3.Distance(transform.position, startPosition));
+       // Debug.Log("Bullet landed : " + (Time.time - startTime) + " sec; Distance : " + Vector3.Distance(transform.position, startPosition));
     }
 
 }
